@@ -245,8 +245,8 @@ async function loadData() {
         const apiBase = window.location.origin;
         
         try {
-            // Cargar Sources desde API
-            const sourcesApiResponse = await fetch(`${apiBase}/api/converter/files/sources.json`);
+            // Cargar Sources desde API (endpoint público)
+            const sourcesApiResponse = await fetch(`${apiBase}/api/converter/data/sources.json`);
             if (sourcesApiResponse.ok) {
                 sourcesData = await sourcesApiResponse.json();
                 console.log('✓ Sources cargados desde API');
@@ -266,8 +266,8 @@ async function loadData() {
         }
         
         try {
-            // Cargar Discontinued desde API
-            const discontinuedApiResponse = await fetch(`${apiBase}/api/converter/files/discontinued.json`);
+            // Cargar Discontinued desde API (endpoint público)
+            const discontinuedApiResponse = await fetch(`${apiBase}/api/converter/data/discontinued.json`);
             if (discontinuedApiResponse.ok) {
                 discontinuedData = await discontinuedApiResponse.json();
                 console.log('✓ Discontinued cargados desde API');
