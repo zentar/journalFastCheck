@@ -8,6 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { convertExcelToJSON, getExcelInfo } from '../services/excelConverter.js';
 import { authenticateToken } from '../middleware/auth.js';
+import { listAllJSON, getJSON, getJSONInfo } from '../services/dataStorage.js';
 import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -137,35 +138,97 @@ router.post('/preview', authenticateToken, upload.single('excelFile'), async (re
 
 /**
  * GET /api/converter/files
- * Lista los archivos JSON generados
+ * Lista los archivos JSON generados (desde memoria y disco)
  */
 router.get('/files', authenticateToken, (req, res) => {
   try {
-    const dataDir = process.env.DATA_DIR || path.join(__dirname, '../../data');
+    // Obtener archivos de memoria
+    const memoryFiles = listAllJSON();
     
-    if (!fs.existsSync(dataDir)) {
-      return res.json({ files: [] });
+    // Intentar obtener archivos de disco también (si es posible)
+    const diskFiles = [];
+    try {
+      const dataDir = process.env.DATA_DIR || path.join(__dirname, '../../data');
+      if (fs.existsSync(dataDir)) {
+        const diskFileList = fs.readdirSync(dataDir)
+          .filter(file => file.endsWith('.json'))
+          .map(file => {
+            const filePath = path.join(dataDir, file);
+            const stats = fs.statSync(filePath);
+            const content = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+            
+            return {
+              name: file,
+              size: stats.size,
+              recordCount: Array.isArray(content) ? content.length : 0,
+              lastModified: stats.mtime.toISOString(),
+              source: 'disk'
+            };
+          });
+        diskFiles.push(...diskFileList);
+      }
+    } catch (diskError) {
+      // Ignorar errores de disco
+      console.log('No se pudo leer archivos de disco:', diskError.message);
     }
     
-    const files = fs.readdirSync(dataDir)
-      .filter(file => file.endsWith('.json'))
-      .map(file => {
-        const filePath = path.join(dataDir, file);
-        const stats = fs.statSync(filePath);
-        const content = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-        
-        return {
-          name: file,
-          size: stats.size,
-          recordCount: Array.isArray(content) ? content.length : 0,
-          lastModified: stats.mtime.toISOString()
-        };
-      });
+    // Combinar y deduplicar (priorizar memoria)
+    const fileMap = new Map();
+    
+    // Primero agregar archivos de disco
+    diskFiles.forEach(file => {
+      fileMap.set(file.name, { ...file, source: 'disk' });
+    });
+    
+    // Luego agregar/sobrescribir con archivos de memoria
+    memoryFiles.forEach(file => {
+      fileMap.set(file.name, { ...file, source: 'memory' });
+    });
+    
+    const files = Array.from(fileMap.values());
     
     res.json({ files });
   } catch (error) {
     console.error('Error al listar archivos:', error);
     res.status(500).json({ error: 'Error al listar archivos' });
+  }
+});
+
+/**
+ * GET /api/converter/files/:fileName
+ * Descarga un archivo JSON específico
+ */
+router.get('/files/:fileName', authenticateToken, (req, res) => {
+  try {
+    const fileName = req.params.fileName;
+    
+    // Intentar obtener de memoria primero
+    const memoryData = getJSON(fileName);
+    if (memoryData) {
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      return res.json(memoryData);
+    }
+    
+    // Si no está en memoria, intentar desde disco
+    try {
+      const dataDir = process.env.DATA_DIR || path.join(__dirname, '../../data');
+      const filePath = path.join(dataDir, fileName);
+      
+      if (fs.existsSync(filePath)) {
+        const content = fs.readFileSync(filePath, 'utf-8');
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+        return res.send(content);
+      }
+    } catch (diskError) {
+      // Ignorar errores de disco
+    }
+    
+    res.status(404).json({ error: 'Archivo no encontrado' });
+  } catch (error) {
+    console.error('Error al obtener archivo:', error);
+    res.status(500).json({ error: 'Error al obtener archivo' });
   }
 });
 

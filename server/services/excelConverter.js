@@ -7,6 +7,7 @@ import XLSX from 'xlsx';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { saveJSON } from './dataStorage.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -131,18 +132,29 @@ export function convertExcelToJSON(excelPath, outputDir) {
         
         // Determinar nombre del archivo de salida
         const outputFileName = getOutputFileName(sheetName);
-        const outputPath = path.join(outputDir, outputFileName);
         
-        // Guardar JSON
-        fs.writeFileSync(outputPath, JSON.stringify(records, null, 2), 'utf-8');
+        // Guardar en memoria (almacenamiento persistente)
+        saveJSON(outputFileName, records);
+        
+        // Intentar guardar en disco también (si es posible)
+        try {
+          const outputPath = path.join(outputDir, outputFileName);
+          if (!fs.existsSync(outputDir)) {
+            fs.mkdirSync(outputDir, { recursive: true });
+          }
+          fs.writeFileSync(outputPath, JSON.stringify(records, null, 2), 'utf-8');
+          console.log(`✓ "${sheetName}" → ${outputFileName} (${records.length} registros) - Guardado en disco`);
+        } catch (diskError) {
+          // Si no se puede escribir en disco, solo se guarda en memoria
+          console.log(`⚠️  No se pudo guardar en disco, solo en memoria: ${diskError.message}`);
+        }
         
         console.log(`✓ "${sheetName}" → ${outputFileName} (${records.length} registros)`);
         
         results.files.push({
           sheetName,
           fileName: outputFileName,
-          recordCount: records.length,
-          path: outputPath
+          recordCount: records.length
         });
         
         results.processedSheets++;

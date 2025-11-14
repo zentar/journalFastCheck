@@ -234,32 +234,65 @@ function performSearch(searchTerm) {
 
 /**
  * Carga los archivos JSON
+ * Intenta cargar desde la API primero, luego desde archivos estáticos
  */
 async function loadData() {
     const loadingIndicator = document.getElementById('loadingIndicator');
     loadingIndicator.classList.remove('hidden');
     
     try {
-        // Cargar Sources
-        const sourcesResponse = await fetch('data/sources.json');
-        if (!sourcesResponse.ok) {
-            throw new Error('No se pudo cargar el archivo sources.json');
-        }
-        sourcesData = await sourcesResponse.json();
+        // Intentar cargar desde la API (si está disponible)
+        const apiBase = window.location.origin;
         
-        // Cargar Discontinued
-        const discontinuedResponse = await fetch('data/discontinued.json');
-        if (!discontinuedResponse.ok) {
-            throw new Error('No se pudo cargar el archivo discontinued.json');
+        try {
+            // Cargar Sources desde API
+            const sourcesApiResponse = await fetch(`${apiBase}/api/converter/files/sources.json`);
+            if (sourcesApiResponse.ok) {
+                sourcesData = await sourcesApiResponse.json();
+                console.log('✓ Sources cargados desde API');
+            } else {
+                throw new Error('No disponible en API');
+            }
+        } catch (apiError) {
+            // Si falla la API, intentar desde archivos estáticos
+            console.log('Intentando cargar desde archivos estáticos...');
+            const sourcesResponse = await fetch('data/sources.json');
+            if (sourcesResponse.ok) {
+                sourcesData = await sourcesResponse.json();
+                console.log('✓ Sources cargados desde archivos estáticos');
+            } else {
+                throw new Error('No se pudo cargar sources.json');
+            }
         }
-        discontinuedData = await discontinuedResponse.json();
+        
+        try {
+            // Cargar Discontinued desde API
+            const discontinuedApiResponse = await fetch(`${apiBase}/api/converter/files/discontinued.json`);
+            if (discontinuedApiResponse.ok) {
+                discontinuedData = await discontinuedApiResponse.json();
+                console.log('✓ Discontinued cargados desde API');
+            } else {
+                throw new Error('No disponible en API');
+            }
+        } catch (apiError) {
+            // Si falla la API, intentar desde archivos estáticos
+            const discontinuedResponse = await fetch('data/discontinued.json');
+            if (discontinuedResponse.ok) {
+                discontinuedData = await discontinuedResponse.json();
+                console.log('✓ Discontinued cargados desde archivos estáticos');
+            } else {
+                // Discontinued es opcional, continuar sin él
+                discontinuedData = [];
+                console.log('⚠️  Discontinued no disponible, continuando sin él');
+            }
+        }
         
         dataLoaded = true;
-        console.log(`Datos cargados: ${sourcesData.length} sources, ${discontinuedData.length} discontinued`);
+        console.log(`✅ Datos cargados: ${sourcesData.length} sources, ${discontinuedData.length} discontinued`);
         
     } catch (error) {
         console.error('Error cargando datos:', error);
-        showError('Error al cargar los datos. Asegúrese de que los archivos JSON estén en la carpeta /data/');
+        showError('Error al cargar los datos. Asegúrese de que los archivos JSON estén disponibles o suba un archivo Excel para generarlos.');
     } finally {
         loadingIndicator.classList.add('hidden');
     }
