@@ -1,13 +1,1 @@
-# Configuración de despliegue para Koyeb
-# Este archivo es opcional - Koyeb puede detectar automáticamente aplicaciones Node.js
-
-name: scopus-check
-type: web
-
-build:
-  type: nixpacks  # Koyeb usa Nixpacks para detectar y construir la aplicación
-  build_command: cd server && npm install
-
-run:
-  command: cd server && npm start
 
