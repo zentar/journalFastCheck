@@ -1,0 +1,22 @@
+{
+  "name": "scopus-check",
+  "version": "1.0.0",
+  "description": "Verificador de Indexación Scopus - MVP",
+  "main": "scripts/convert-csv.js",
+  "scripts": {
+    "convert": "node scripts/convert-csv.js"
+  },
+  "keywords": [
+    "scopus",
+    "verificador",
+    "indexacion"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "csv-parse": "^5.5.2",
+    "xlsx": "^0.18.5"
+  }
+}
+
+

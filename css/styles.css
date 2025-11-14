@@ -1,0 +1,25 @@
+/* Estilos adicionales para la aplicación */
+/* La mayoría de los estilos se manejan con Tailwind CSS */
+
+/* Animación personalizada si es necesaria */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#resultsContainer > div {
+    animation: fadeIn 0.3s ease-in;
+}
+
+/* Asegurar que el contenedor principal tenga suficiente espacio */
+.container {
+    min-height: calc(100vh - 4rem);
+}
+
+
