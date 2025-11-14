@@ -2,7 +2,8 @@
  * Script del panel de administración
  */
 
-const API_URL = 'http://localhost:3000/api';
+// Detectar la URL de la API automáticamente (local o producción)
+const API_URL = window.location.origin + '/api';
 let authToken = null;
 
 // Elementos del DOM

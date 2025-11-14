@@ -1,0 +1,14 @@
+# Archivos a ignorar en el despliegue de Koyeb
+node_modules/
+server/node_modules/
+*.csv
+data/*.json
+server/.env
+server/uploads/
+server/data/users.json
+.DS_Store
+*.log
+npm-debug.log*
+.vscode/
+.idea/
+

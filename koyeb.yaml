@@ -1,0 +1,19 @@
+# Configuración de despliegue para Koyeb
+# Este archivo es opcional - Koyeb puede detectar automáticamente aplicaciones Node.js
+
+name: scopus-check
+regions:
+  - fra  # Frankfurt (puedes cambiar a otra región)
+type: web
+
+build:
+  type: nixpacks  # Koyeb usa Nixpacks para detectar y construir la aplicación
+
+run:
+  command: cd server && npm start
+  env:
+    - name: NODE_ENV
+      value: production
+    - name: PORT
+      value: "8080"  # Koyeb asignará el puerto automáticamente, pero esto es un fallback
+

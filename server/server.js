@@ -21,6 +21,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+// Koyeb asigna el puerto dinámicamente, usar PORT de las variables de entorno
 const PORT = process.env.PORT || 3000;
 
 // Middleware
