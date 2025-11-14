@@ -40,6 +40,9 @@ git push origin main
 - **Build Command**: `cd server && npm install`
 - **Run Command**: `cd server && npm start`
 
+**IMPORTANTE**: El proyecto incluye un `Procfile` que Koyeb detectará automáticamente. Si no se detecta, configura manualmente:
+- **Run Command**: `cd server && npm start`
+
 O si prefieres usar el Dockerfile:
 - **Dockerfile Path**: `server/Dockerfile`
 
@@ -129,18 +132,27 @@ Nunca subas archivos `.env` al repositorio. Usa siempre las variables de entorno
 
 ## Solución de Problemas
 
+### Error: "no command to run your application"
+- **Solución**: El proyecto incluye un `Procfile` en la raíz. Si Koyeb no lo detecta:
+  1. Ve a **Settings** > **Service**
+  2. En **Run Command**, ingresa: `cd server && npm start`
+  3. Guarda y redespliega
+
 ### Error: "Cannot find module"
 - Verifica que `cd server && npm install` se ejecute correctamente
 - Asegúrate de que `package.json` esté en la carpeta `server/`
+- Verifica que el **Build Command** sea: `cd server && npm install`
 
 ### Error: "Port already in use"
 - Koyeb asigna el puerto automáticamente a través de `PORT`
 - Asegúrate de que el servidor use `process.env.PORT || 3000`
+- No necesitas configurar PORT manualmente, Koyeb lo hace automáticamente
 
 ### Error: "Build failed"
 - Revisa los logs de build en Koyeb
-- Verifica que todas las dependencias estén en `package.json`
+- Verifica que todas las dependencias estén en `package.json` dentro de `server/`
 - Asegúrate de que Node.js 18+ esté disponible
+- Verifica que el **Build Command** sea correcto: `cd server && npm install`
 
 ## Actualizar la Aplicación
 
